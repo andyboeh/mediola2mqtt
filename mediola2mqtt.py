@@ -124,7 +124,6 @@ if 'buttons' in config:
           "topic" : topic,
           "type" : "button_short_press",
           "subtype" : "button_1",
-          "name" : name,
           "device" : {
             "identifiers" : identifier,
             "manufacturer" : "Mediola",
@@ -151,6 +150,7 @@ if 'blinds' in config:
           "payload_stop" : "stop",
           "optimistic" : True,
           "device_class" : "blind",
+          "unique_id" : identifier,
           "name" : name,
           "device" : {
             "identifiers" : identifier,
