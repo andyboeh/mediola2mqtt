@@ -1,0 +1,50 @@
+mediola:
+  host: 192.168.18.127
+  udp_port: 1902
+
+mqtt:
+  host: homeassistant.lan
+  port: 1883
+  discovery_prefix: homeassistant
+  topic: mediola
+  debug: false
+
+buttons:
+  - type: IT
+    adr: 3d5e00
+    name: Schlafzimmer
+  - type: IT
+    adr: 4de600
+    name: Esszimmer
+
+blinds:
+  - type: RT
+    adr: 5a25d5
+    name: Bad 1
+  - type: RT
+    adr: 129a3a
+    name: Bad 2
+  - type: RT
+    adr: c36a8a
+    name: Diele
+  - type: RT
+    adr: f6eba5
+    name: Stiegenhaus
+  - type: ER
+    adr: "01"
+    name: Essbereich Nord
+  - type: ER
+    adr: "02"
+    name: Essbereich Süd
+  - type: ER
+    adr: "03"
+    name: Kinderzimmer
+  - type: ER
+    adr: "04"
+    name: Schlafzimmer Rechts
+  - type: ER
+    adr: "05"
+    name: Schlafzimmer Mitte
+  - type: ER
+    adr: "06"
+    name: Schlafzimmer Links
