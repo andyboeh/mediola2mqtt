@@ -20,3 +20,19 @@ Currently, the following devices are supported/tested:
 Configure your devices in the file config.yaml - have a look at config.yaml.example
 for the syntax. If you have MQTT autodiscovery enabled in your HomeAssistant platform,
 then the devices will appear automagically. 
+
+The devices need to be known to the Gateway in advance, you need IQONTROL or
+AIO Creator Neo for the initial configuration. You can retrieve a list of all
+known devices by calling `http://mediola.lan/command?XC_FNC=GetStates` in a 
+browser. Check for `type` and `adr` fields.
+
+## How it works
+
+The Mediola AIO Gateway v4 supports a simple HTTP API for control and broadcasts
+status changes via UDP on port 1902. The script provides a UDP socket server
+that listens for the status changes, interprets them and publishes them via MQTT.
+This is useful for buttons/switches, but could also be used for the state
+of a blind (not yet implemented).
+
+Controlling a blind or other device is done via HTTP, by interpreting MQTT messages
+and triggering the HTTP API.

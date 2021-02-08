@@ -12,10 +12,8 @@ mqtt:
 buttons:
   - type: IT
     adr: 3d5e00
-    name: Schlafzimmer
   - type: IT
     adr: 4de600
-    name: Esszimmer
 
 blinds:
   - type: RT
