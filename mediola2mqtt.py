@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+# (c) 2021 Andreas Böhler
+# License: Apache 2.0
+
+
 import paho.mqtt.client as mqtt
 import socket
 import json
