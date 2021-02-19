@@ -11,15 +11,15 @@ import os
 import sys
 import requests
 
-if not os.path.exists('config.yaml'):
-    print('Configuration file "config.yaml" not found, exiting.')
+if os.path.exists('/config/mediola2mqtt.yaml'):
+    fp = open('/config/mediola2mqtt.yaml', 'r')
+    config = yaml.safe_load(fp)
+elif os.path.exists('mediola2mqtt.yaml'):
+    fp = open('mediola2mqtt.yaml', 'r')
+    config = yaml.safe_load(fp)
+else:
+    print('Configuration file not found, exiting.')
     sys.exit(1)
-
-subscriptions = {}
-
-fp = open('config.yaml', 'r')
-config = yaml.safe_load(fp)
-print(config)
 
 # Define MQTT event callbacks
 def on_connect(client, userdata, flags, rc):
@@ -104,6 +104,8 @@ if config['mqtt']['debug']:
     mqttc.on_log = on_log    
     mqttc.on_publish = on_publish
 
+if config['mqtt']['username'] and config['mqtt']['password']:
+    mqttc.username_pw_set(config['mqtt']['username'], config['mqtt']['password'])
 mqttc.connect(config['mqtt']['host'], config['mqtt']['port'], 60)
 mqttc.loop_start()
 

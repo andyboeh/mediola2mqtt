@@ -15,9 +15,17 @@ Currently, the following devices are supported/tested:
   * Somfy RTS Blinds
   * Elero Blinds
 
+## Installation
+
+If you run Home Assistant OS (HassOS), you can run it as an addon. Simply create
+a new folder "mediola2mqtt" in your local "addons" folder and copy the contents
+of the repository there. Then, copy the file `mediola2mqtt.yaml.example` to the "config" directory
+as `mediola2.mqtt.yaml` and adapt it to your needs. All configuration is
+performed in this file.
+
 ## Usage
 
-Configure your devices in the file config.yaml - have a look at config.yaml.example
+Configure your devices in the file mediola2mqtt.yaml - have a look at mediola2mqtt.yaml.example
 for the syntax. If you have MQTT autodiscovery enabled in your HomeAssistant platform,
 then the devices will appear automagically. 
 

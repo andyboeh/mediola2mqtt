@@ -5,6 +5,8 @@ mediola:
 mqtt:
   host: homeassistant.lan
   port: 1883
+  username: 
+  password: 
   discovery_prefix: homeassistant
   topic: mediola
   debug: false
