@@ -1,16 +1,41 @@
 #!/usr/bin/env python
 
 import sys
-from PyQt5 import QtWidgets, uic
+from PyQt5 import QtWidgets, uic, QtGui
 from PyQt5.QtCore import QThread, pyqtSignal, QObject, pyqtSlot, QTimer
-from PyQt5.QtWidgets import QTableWidgetItem
+from PyQt5.QtWidgets import QTableWidgetItem, QDialog
 import requests
 import json
 
-class eleroManager(QtWidgets.QWidget):
-    def __init__(self, ui):
-        super(eleroManager, self).__init__()
-        self.ui = ui
+class addDevice(QtWidgets.QDialog):
+    def __init__(self, parent):
+        super(addDevice, self).__init__(parent)
+        uic.loadUi('adddevice.ui', self)
+        self.hideAllGroups()
+        self.findChild(QObject, 'comboDeviceType').currentTextChanged.connect(self.deviceTypeChanged)
+        self.findChild(QObject, 'btnClose').clicked.connect(self.hide)
+        self.deviceTypeChanged(self.findChild(QObject, 'comboDeviceType').currentText())
+        
+    def hideAllGroups(self):
+        self.findChild(QObject, 'groupElero').setVisible(False)
+        self.findChild(QObject, 'groupSomfy').setVisible(False)
+        self.findChild(QObject, 'groupIntertechno').setVisible(False)
+        
+    def deviceTypeChanged(self, text):
+        self.hideAllGroups()
+        if text == 'Elero':
+            self.findChild(QObject, 'groupElero').setVisible(True)
+        elif text == 'Intertechno':
+            self.findChild(QObject, 'groupIntertechno').setVisible(True)
+        elif text == 'Somfy':
+            self.findChild(QObject, 'groupSomfy').setVisible(True)
+    
+
+
+class eleroManager(QtWidgets.QDialog):
+    def __init__(self, parent):
+        super(eleroManager, self).__init__(parent)
+        self.ui = parent
         uic.loadUi('eleromanager.ui', self)
         self.findChild(QObject, 'btnClose').clicked.connect(self.hide)
         self.findChild(QObject, 'btnUp').clicked.connect(self.btnUpClicked)
@@ -85,6 +110,7 @@ class Ui(QtWidgets.QMainWindow):
         self.devices = []
         self.show()
         self.eleroManager = eleroManager(self)
+        self.addDevice = addDevice(self)
         self.gatewayDisconnected()
         
     def gatewayDisconnected(self):
@@ -93,6 +119,7 @@ class Ui(QtWidgets.QMainWindow):
         self.findChild(QObject, 'btnDeleteDevice').setEnabled(False)
         self.findChild(QObject, 'btnConnect').setChecked(False)
         self.findChild(QObject, 'editHostname').setEnabled(True)
+        self.findChild(QObject, 'tblDevices').clear()
         
     def gatewayConnected(self):
         self.findChild(QObject, 'btnEleroManager').setEnabled(True)
@@ -102,7 +129,7 @@ class Ui(QtWidgets.QMainWindow):
         self.findChild(QObject, 'editHostname').setEnabled(False)
     
     def addDevice(self):
-        pass
+        self.addDevice.show()
         
     def delDevice(self):
         pass
