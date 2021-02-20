@@ -5,7 +5,7 @@ Mediola AIO gateway to HomeAssistant or other MQTT capable hosts.
 
 ## Supported gateways
 
-  * Mediola AIO gateway v4
+  * Mediola AIO gateway v4/v4+
 
 ## Supported devices
 

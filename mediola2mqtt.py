@@ -164,6 +164,8 @@ if 'blinds' in config:
             "name" : "Mediola Blind",
           },
         }
+        if config['blinds'][ii]['type'] == 'ER':
+            payload["state_topic"] = topic + "/state"
         payload = json.dumps(payload)
         mqttc.subscribe(topic + "/set")
         mqttc.publish(dtopic, payload=payload, retain=True)
@@ -182,4 +184,20 @@ while True:
                     identifier = config['buttons'][ii]['type'] + '_' + config['buttons'][ii]['adr']
                     topic = config['mqtt']['topic'] + '/buttons/' + identifier
                     payload = data_dict['data'][-2:]
+                    mqttc.publish(topic, payload=payload, retain=True)
+        for ii in range(0, len(config['blinds'])):
+            if data_dict['type'] == 'ER' and data_dict['type'] == config['blinds'][ii]['type']:
+                if data_dict['data'][0:2].lower() == config['blinds'][ii]['adr'].lower():
+                    identifier = config['blinds'][ii]['type'] + '_' + config['blinds'][ii]['adr']
+                    topic = config['mqtt']['topic'] + '/blinds/' + identifier + '/state'
+                    state = data_dict['data'][-2:].lower()
+                    payload = 'unknown'
+                    if state == '01' or state == '0e':
+                        payload = 'open'
+                    elif state == '02' or state == '0f':
+                        payload = 'closed'
+                    elif state == '08' or state == '0a':
+                        payload = 'opening'
+                    elif state == '09' or state == '0b':
+                        payload = 'closing'
                     mqttc.publish(topic, payload=payload, retain=True)
