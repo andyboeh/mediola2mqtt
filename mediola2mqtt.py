@@ -184,7 +184,7 @@ while True:
                     identifier = config['buttons'][ii]['type'] + '_' + config['buttons'][ii]['adr']
                     topic = config['mqtt']['topic'] + '/buttons/' + identifier
                     payload = data_dict['data'][-2:]
-                    mqttc.publish(topic, payload=payload, retain=True)
+                    mqttc.publish(topic, payload=payload, retain=False)
         for ii in range(0, len(config['blinds'])):
             if data_dict['type'] == 'ER' and data_dict['type'] == config['blinds'][ii]['type']:
                 if data_dict['data'][0:2].lower() == config['blinds'][ii]['adr'].lower():
