@@ -1,0 +1,14 @@
+post_install() {
+  # Create user
+  systemd-sysusers mediola2mqtt.conf
+  chown -R mediola2mqtt:mediola2mqtt /opt/mediola2mqtt
+}
+
+post_upgrade() {
+  systemctl daemon-reload
+}
+
+post_remove() {
+  systemctl stop mediola2mqtt.service
+  true
+}

@@ -1,0 +1,15 @@
+[Unit]
+Description=mediola2mqtt
+After=network.target
+
+[Service]
+User=mediola2mqtt
+Group=mediola2mqtt
+WorkingDirectory=/opt/mediola2mqtt
+Type=simple
+ExecStart=/opt/mediola2mqtt/mediola2mqtt.py
+Restart=always
+TimeoutStopSec=30
+
+[Install]
+WantedBy=mult-user.target
