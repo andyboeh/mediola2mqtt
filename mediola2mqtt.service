@@ -1,6 +1,7 @@
 [Unit]
 Description=mediola2mqtt
 After=network.target
+StartLimitIntervalSec=0
 
 [Service]
 User=mediola2mqtt
@@ -9,6 +10,7 @@ WorkingDirectory=/opt/mediola2mqtt
 Type=simple
 ExecStart=/opt/mediola2mqtt/mediola2mqtt.py
 Restart=always
+RestartSec=10
 TimeoutStopSec=30
 
 [Install]
