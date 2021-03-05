@@ -8,6 +8,7 @@ User=mediola2mqtt
 Group=mediola2mqtt
 WorkingDirectory=/opt/mediola2mqtt
 Type=simple
+Environment="PYTHONUNBUFFERED=1"
 ExecStart=/opt/mediola2mqtt/mediola2mqtt.py
 Restart=always
 RestartSec=10
