@@ -106,7 +106,11 @@ if config['mqtt']['debug']:
 
 if config['mqtt']['username'] and config['mqtt']['password']:
     mqttc.username_pw_set(config['mqtt']['username'], config['mqtt']['password'])
-mqttc.connect(config['mqtt']['host'], config['mqtt']['port'], 60)
+try:
+    mqttc.connect(config['mqtt']['host'], config['mqtt']['port'], 60)
+except:
+    print('Error connecting to MQTT, will now quit.')
+    sys.exit(1)
 mqttc.loop_start()
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
