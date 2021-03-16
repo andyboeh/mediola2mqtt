@@ -1,16 +1,62 @@
 {
-    "name": "Mediola to MQTT",
-    "version": "0.1",
-    "slug": "mediola2mqtt",
-    "description": "Homeassistant interface to Mediola AIO Gateway v4/v4+",
-    "arch": ["aarch64", "amd64", "armhf", "armv7", "i386"],
-    "startup": "application",
-	"services": ["mqtt:need"],
-    "boot": "auto",
-    "ports" : {
-      "1902/udp" : 1902
+  "name": "Mediola to MQTT",
+  "version": "0.2",
+  "slug": "mediola2mqtt_test",
+  "description": "Homeassistant interface to Mediola AIO Gateway v4/v4+/V6",
+  "arch": ["aarch64", "amd64", "armhf", "armv7", "i386"],
+  "startup": "application",
+  "services": ["mqtt:need"],
+  "boot": "auto",
+  "ports" : {
+    "1902/udp" : 1902
+  },
+  "map" : ["config"],
+  "options": {
+    "mediola": {
+      "host": "",
+      "udp_port": 80
     },
-    "map" : ["config"],
-    "options": { },
-    "schema": {	}
+    "mqtt":{
+      "host": "",
+      "port":  1803,
+      "username": "",
+      "password": "",
+      "discovery_prefix": "homeassistant",
+      "topic": "mediola",
+      "debug" : false
+    },
+    "blinds":[
+      {
+      "type": "ER",
+      "adr": "01",
+      "name": "Elero blind "
+    }],
+    "buttons":[]
+  },
+  "schema": {
+    "mediola": {
+      "host": "str",
+      "udp_port": "int(0,65536)"
+    },
+    "mqtt":{
+      "host": "str",
+      "port": "int(0,65536)",
+      "username": "str",
+      "password": "password",
+      "discovery_prefix": "str",
+      "topic": "str",
+      "debug" : "bool"
+    },
+    "blinds":[
+      {
+      "type": "match(ER|RT)?",
+      "adr": "str?",
+      "name": "str?"
+    }],
+    "buttons":[
+      {
+      "type": "match(IT)?",
+      "adr": "str?"
+    }]
+   }
 }

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env bashio
 # (c) 2021 Andreas Böhler
 # License: Apache 2.0
 
@@ -11,15 +11,58 @@ import os
 import sys
 import requests
 
-if os.path.exists('/config/mediola2mqtt.yaml'):
-    fp = open('/config/mediola2mqtt.yaml', 'r')
-    config = yaml.safe_load(fp)
-elif os.path.exists('mediola2mqtt.yaml'):
-    fp = open('mediola2mqtt.yaml', 'r')
-    config = yaml.safe_load(fp)
-else:
-    print('Configuration file not found, exiting.')
-    sys.exit(1)
+# get variables from bashio into python variables
+mediola_host = os.environ["mediola_host"]
+mediola_udp_port = os.environ["mediola_udp_port"] 
+mqtt_host = os.environ["mqtt_host"] 
+mqtt_port = os.environ["mqtt_port"] 
+mqtt_username = os.environ["mqtt_username"] 
+mqtt_password = os.environ["mqtt_password"] 
+mqtt_discovery_prefix = os.environ["mqtt_discovery_prefix"] 
+mqtt_topic = os.environ["mqtt_topic"] 
+mqtt_debug = os.environ["mqtt_debug"] 
+buttons = os.environ["buttons"]
+blinds = os.environ["blinds"] 
+
+# struct data in json format
+config = {}
+config['mediola'] = {}
+config['mqtt'] = {}
+config['mediola']['host'] = mediola_host
+config['mediola']['udp_port'] = int(mediola_udp_port)
+config['mqtt']['host'] = mqtt_host
+config['mqtt']['port'] = int(mqtt_port)
+config['mqtt']['username'] = mqtt_username
+config['mqtt']['password'] = mqtt_password
+config['mqtt']['discovery_prefix'] = mqtt_discovery_prefix
+config['mqtt']['topic'] = mqtt_topic
+config['mqtt']['debug'] = mqtt_debug
+
+try:
+    blinds_str = "["
+    blinds_str += blinds
+    blinds_str += "]"
+    blinds_str = blinds_str.replace("\n", ", ")
+    blinds_json = json.loads(blinds_str)
+    if blinds_json:
+        config['blinds'] = blinds_json
+except:
+    print("Binds config error, exception:", Exception)
+    exit(1)
+
+try:
+    buttons_str = "["
+    buttons_str += buttons
+    buttons_str += "]"
+    buttons_str = buttons_str.replace("\n", ",")
+    buttons_json = json.loads(buttons_str)
+    if buttons_json:
+        config['buttons'] = buttons_json
+except:
+    print("Button config error, exception:", Exception)
+    exit(1)
+
+
 
 # Define MQTT event callbacks
 def on_connect(client, userdata, flags, rc):
