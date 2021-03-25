@@ -11,12 +11,21 @@ import os
 import sys
 import requests
 
-if os.path.exists('/config/mediola2mqtt.yaml'):
+if os.path.exists('/data/options.json'):
+    print('Running in hass.io add-on mode')
+    fp = open('/data/options.json', 'r')
+    config = json.load(fp)
+    fp.close()
+elif os.path.exists('/config/mediola2mqtt.yaml'):
+    print('Running in legacy add-on mode')
     fp = open('/config/mediola2mqtt.yaml', 'r')
     config = yaml.safe_load(fp)
+    fp.close()
 elif os.path.exists('mediola2mqtt.yaml'):
+    print('Running in local mode')
     fp = open('mediola2mqtt.yaml', 'r')
     config = yaml.safe_load(fp)
+    fp.close()
 else:
     print('Configuration file not found, exiting.')
     sys.exit(1)
