@@ -143,7 +143,8 @@ class Ui(QtWidgets.QMainWindow):
         if self.version == 4:
             if text.startswith('{XC_SUC}'):
                 text = text.replace('{XC_SUC}', '')
-                ret = json.loads(text)
+                if len(text) > 0:
+                    ret = json.loads(text)
                 res = True
             elif text.startswith('{XC_ERR}'):
                 text = text.replace('{XC_ERR}', '')
@@ -203,7 +204,10 @@ class Ui(QtWidgets.QMainWindow):
         if data:
             payload.update(data)
         print(payload)
-        response = requests.get(self.url, params=payload, headers={'Connection':'close'})
+        try:
+            response = requests.get(self.url, params=payload, headers={'Connection':'close'})
+        except:
+            return False, ''
         message = ''
         if response.status_code == 200:
             res, message = self.parseResponse(response.text)

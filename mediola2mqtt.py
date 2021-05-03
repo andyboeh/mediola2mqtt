@@ -62,21 +62,21 @@ def on_message(client, obj, msg):
               if dtype == 'RT':
                 data = "20" + adr
               elif dtype == 'ER':
-                data = adr + "01"
+                data = format(int(adr), "02x") + "01"
               else:
                 return
             elif msg.payload == b'close':
               if dtype == 'RT':
                 data = "40" + adr
               elif dtype == 'ER':
-                data = adr + "00"
+                data = format(int(adr), "02x") + "00"
               else:
                 return
             elif msg.payload == b'stop':
               if dtype == 'RT':
                 data = "10" + adr
               elif dtype == 'ER':
-                data = adr + "02"
+                data = format(int(adr), "02x") + "02"
               else:
                 return
             else:
@@ -131,6 +131,7 @@ if 'buttons' in config:
     # Buttons are configured as MQTT device triggers
     for ii in range(0, len(config['buttons'])):
         identifier = config['buttons'][ii]['type'] + '_' + config['buttons'][ii]['adr']
+        deviceid = "mediola_buttons_" + config['mediola']['host'].replace(".", "")
         dtopic = config['mqtt']['discovery_prefix'] + '/device_automation/' + \
                  identifier + '/config'
         topic = config['mqtt']['topic'] + '/buttons/' + identifier
@@ -144,7 +145,7 @@ if 'buttons' in config:
           "type" : "button_short_press",
           "subtype" : "button_1",
           "device" : {
-            "identifiers" : identifier,
+            "identifiers" : deviceid,
             "manufacturer" : "Mediola",
             "name" : "Mediola Button",
           },
@@ -155,6 +156,7 @@ if 'buttons' in config:
 if 'blinds' in config:
     for ii in range(0, len(config['blinds'])):
         identifier = config['blinds'][ii]['type'] + '_' + config['blinds'][ii]['adr']
+        deviceid = "mediola_blinds_" + config['mediola']['host'].replace(".", "")
         dtopic = config['mqtt']['discovery_prefix'] + '/cover/' + \
                  identifier + '/config'
         topic = config['mqtt']['topic'] + '/blinds/' + identifier
@@ -172,7 +174,7 @@ if 'blinds' in config:
           "unique_id" : identifier,
           "name" : name,
           "device" : {
-            "identifiers" : identifier,
+            "identifiers" : deviceid,
             "manufacturer" : "Mediola",
             "name" : "Mediola Blind",
           },
@@ -200,7 +202,7 @@ while True:
                     mqttc.publish(topic, payload=payload, retain=False)
         for ii in range(0, len(config['blinds'])):
             if data_dict['type'] == 'ER' and data_dict['type'] == config['blinds'][ii]['type']:
-                if data_dict['data'][0:2].lower() == config['blinds'][ii]['adr'].lower():
+                if format(int(data_dict['data'][0:2].lower(), 16), '02d') == config['blinds'][ii]['adr'].lower():
                     identifier = config['blinds'][ii]['type'] + '_' + config['blinds'][ii]['adr']
                     topic = config['mqtt']['topic'] + '/blinds/' + identifier + '/state'
                     state = data_dict['data'][-2:].lower()
@@ -213,4 +215,6 @@ while True:
                         payload = 'opening'
                     elif state == '09' or state == '0b':
                         payload = 'closing'
+                    elif state == '0d' or state == '05':
+                        payload = 'stopped'
                     mqttc.publish(topic, payload=payload, retain=True)
