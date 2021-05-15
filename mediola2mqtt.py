@@ -40,7 +40,10 @@ def on_connect(client, userdata, flags, rc):
         4: "bad username or password",
         5: "not authorised"
     }
-    print("MQTT: " + connect_statuses.get(rc, "Unknown error"))
+    if rc != 0:
+        print("MQTT: " + connect_statuses.get(rc, "Unknown error"))
+    else:
+        setup_discovery()
 
 def on_disconnect(client, userdata, rc):
     if rc != 0:
@@ -100,6 +103,65 @@ def on_subscribe(client, obj, mid, granted_qos):
 def on_log(client, obj, level, string):
     print(string)
 
+def setup_discovery():
+    if 'buttons' in config:
+        # Buttons are configured as MQTT device triggers
+        for ii in range(0, len(config['buttons'])):
+            identifier = config['buttons'][ii]['type'] + '_' + config['buttons'][ii]['adr']
+            deviceid = "mediola_buttons_" + config['mediola']['host'].replace(".", "")
+            dtopic = config['mqtt']['discovery_prefix'] + '/device_automation/' + \
+                     identifier + '/config'
+            topic = config['mqtt']['topic'] + '/buttons/' + identifier
+            name = "Mediola Button"
+            if 'name' in config['buttons'][ii]['type']:
+                name = config['buttons'][ii]['name']
+
+            payload = {
+              "automation_type" : "trigger",
+              "topic" : topic,
+              "type" : "button_short_press",
+              "subtype" : "button_1",
+              "device" : {
+                "identifiers" : deviceid,
+                "manufacturer" : "Mediola",
+                "name" : "Mediola Button",
+              },
+            }
+            payload = json.dumps(payload)
+            mqttc.publish(dtopic, payload=payload, retain=True)
+
+    if 'blinds' in config:
+        for ii in range(0, len(config['blinds'])):
+            identifier = config['blinds'][ii]['type'] + '_' + config['blinds'][ii]['adr']
+            deviceid = "mediola_blinds_" + config['mediola']['host'].replace(".", "")
+            dtopic = config['mqtt']['discovery_prefix'] + '/cover/' + \
+                     identifier + '/config'
+            topic = config['mqtt']['topic'] + '/blinds/' + identifier
+            name = "Mediola Blind"
+            if 'name' in config['blinds'][ii]:
+                name = config['blinds'][ii]['name']
+
+            payload = {
+              "command_topic" : topic + "/set",
+              "payload_open" : "open",
+              "payload_close" : "close",
+              "payload_stop" : "stop",
+              "optimistic" : True,
+              "device_class" : "blind",
+              "unique_id" : identifier,
+              "name" : name,
+              "device" : {
+                "identifiers" : deviceid,
+                "manufacturer" : "Mediola",
+                "name" : "Mediola Blind",
+              },
+            }
+            if config['blinds'][ii]['type'] == 'ER':
+                payload["state_topic"] = topic + "/state"
+            payload = json.dumps(payload)
+            mqttc.subscribe(topic + "/set")
+            mqttc.publish(dtopic, payload=payload, retain=True)
+
 # Setup MQTT connection
 mqttc = mqtt.Client()
 
@@ -126,64 +188,6 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind(('',config['mediola']['udp_port']))
 
 # Set up discovery structure
-
-if 'buttons' in config:
-    # Buttons are configured as MQTT device triggers
-    for ii in range(0, len(config['buttons'])):
-        identifier = config['buttons'][ii]['type'] + '_' + config['buttons'][ii]['adr']
-        deviceid = "mediola_buttons_" + config['mediola']['host'].replace(".", "")
-        dtopic = config['mqtt']['discovery_prefix'] + '/device_automation/' + \
-                 identifier + '/config'
-        topic = config['mqtt']['topic'] + '/buttons/' + identifier
-        name = "Mediola Button"
-        if 'name' in config['buttons'][ii]['type']:
-            name = config['buttons'][ii]['name']
-
-        payload = {
-          "automation_type" : "trigger",
-          "topic" : topic,
-          "type" : "button_short_press",
-          "subtype" : "button_1",
-          "device" : {
-            "identifiers" : deviceid,
-            "manufacturer" : "Mediola",
-            "name" : "Mediola Button",
-          },
-        }
-        payload = json.dumps(payload)
-        mqttc.publish(dtopic, payload=payload, retain=True)
-
-if 'blinds' in config:
-    for ii in range(0, len(config['blinds'])):
-        identifier = config['blinds'][ii]['type'] + '_' + config['blinds'][ii]['adr']
-        deviceid = "mediola_blinds_" + config['mediola']['host'].replace(".", "")
-        dtopic = config['mqtt']['discovery_prefix'] + '/cover/' + \
-                 identifier + '/config'
-        topic = config['mqtt']['topic'] + '/blinds/' + identifier
-        name = "Mediola Blind"
-        if 'name' in config['blinds'][ii]:
-            name = config['blinds'][ii]['name']
-
-        payload = {
-          "command_topic" : topic + "/set",
-          "payload_open" : "open",
-          "payload_close" : "close",
-          "payload_stop" : "stop",
-          "optimistic" : True,
-          "device_class" : "blind",
-          "unique_id" : identifier,
-          "name" : name,
-          "device" : {
-            "identifiers" : deviceid,
-            "manufacturer" : "Mediola",
-            "name" : "Mediola Blind",
-          },
-        }
-        if config['blinds'][ii]['type'] == 'ER':
-            payload["state_topic"] = topic + "/state"
-        payload = json.dumps(payload)
-        mqttc.subscribe(topic + "/set")
-        mqttc.publish(dtopic, payload=payload, retain=True)
 
 while True:
     data, addr = sock.recvfrom(1024)
