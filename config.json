@@ -25,15 +25,13 @@
         "topic": "mediola",
         "debug": false
       },
-      "blinds": [
-      ],
-      "buttons": [
-      ]
+      "blinds": [ ],
+      "buttons": [ ]
     },
     "schema": {
       "mediola": {
         "host": "str",
-        "port": "int(0,65535)"
+        "udp_port": "int(0,65535)"
       },
       "mqtt": {
         "host": "str",
