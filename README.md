@@ -19,18 +19,21 @@ Currently, the following devices are supported/tested:
 
 If you run Home Assistant OS (HassOS), you can run it as an addon. Simply create
 a new folder "mediola2mqtt" in your local "addons" folder and copy the contents
-of the repository there. Then, copy the file `mediola2mqtt.yaml.example` to the "config" directory
-as `mediola2.mqtt.yaml` and adapt it to your needs. All configuration is
-performed in this file.
+of the repository there. All configuration is performed within the add-on configuration.
+
+If you do not run HassOS, the configuration is done in `mediola2mqtt.yaml`.
 
 ## Usage
 
-Configure your devices in the file mediola2mqtt.yaml - have a look at mediola2mqtt.yaml.example
-for the syntax. If you have MQTT autodiscovery enabled in your HomeAssistant platform,
-then the devices will appear automagically. 
+Configure your devices in the file mediola2mqtt.yaml / add-on configuration - have
+a look at mediola2mqtt.yaml.example for the syntax. If you have MQTT autodiscovery
+enabled in your HomeAssistant platform, then the devices will appear automagically.
 
 The devices need to be known to the Gateway in advance, you need IQONTROL or
-AIO Creator Neo for the initial configuration. You can retrieve a list of all
+AIO Creator Neo for the initial configuration. Some steps, like configuring
+Elero blinds, can also be performed by running `mediolamanager.py`.
+
+You can retrieve a list of all
 known devices by calling `http://mediola.lan/command?XC_FNC=GetStates` in a 
 browser. Check for `type` and `adr` fields.
 

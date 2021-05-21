@@ -11,6 +11,51 @@
       "1902/udp" : 1902
     },
     "map" : ["config"],
-    "options": { },
-    "schema": {	}
+    "options": {
+      "mediola": {
+        "host": "",
+        "udp_port": 1902
+      },
+      "mqtt": {
+        "host": "",
+        "port": 1803,
+        "username": "",
+        "password": "",
+        "discovery_prefix": "homeassistant",
+        "topic": "mediola",
+        "debug": false
+      },
+      "blinds": [
+      ],
+      "buttons": [
+      ]
+    },
+    "schema": {
+      "mediola": {
+        "host": "str",
+        "port": "int(0,65535)"
+      },
+      "mqtt": {
+        "host": "str",
+        "port": "int(0,65535)",
+        "username": "str",
+        "password": "password",
+        "discovery_prefix": "str",
+        "topic": "str",
+        "debug": "bool"
+      },
+      "blinds": [
+        {
+        "type": "match(ER|RT)?",
+        "adr": "str?",
+        "name": "str?"
+        }
+      ],
+      "buttons": [
+        {
+        "type": "match(IT)?",
+        "adr": "str?"
+        }
+      ]
+    }
 }
