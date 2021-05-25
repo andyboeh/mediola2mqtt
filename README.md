@@ -15,6 +15,9 @@ Currently, the following devices are supported/tested:
   * Somfy RTS Blinds
   * Elero Blinds
 
+If you want another device supported by Mediola to be controllable through
+this script, create an issue on github.
+
 ## Installation
 
 If you run Home Assistant OS (HassOS), you can run it as an addon. Simply create
@@ -42,8 +45,8 @@ browser. Check for `type` and `adr` fields.
 The Mediola AIO Gateway v4 supports a simple HTTP API for control and broadcasts
 status changes via UDP on port 1902. The script provides a UDP socket server
 that listens for the status changes, interprets them and publishes them via MQTT.
-This is useful for buttons/switches, but could also be used for the state
-of a blind (not yet implemented).
+This is useful for buttons/switches, but can also be used for the state
+of a blind (only implemented for Elero).
 
 Controlling a blind or other device is done via HTTP, by interpreting MQTT messages
 and triggering the HTTP API.
