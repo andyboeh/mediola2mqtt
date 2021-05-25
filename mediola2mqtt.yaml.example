@@ -1,6 +1,7 @@
 mediola:
   host: 192.168.18.127
   udp_port: 1902
+  password:
 
 mqtt:
   host: homeassistant.lan

@@ -1,6 +1,6 @@
 {
     "name": "Mediola to MQTT",
-    "version": "0.1",
+    "version": "0.2",
     "slug": "mediola2mqtt",
     "description": "Homeassistant interface to Mediola AIO Gateway v4/v4+",
     "arch": ["aarch64", "amd64", "armhf", "armv7", "i386"],
@@ -14,7 +14,8 @@
     "options": {
       "mediola": {
         "host": "",
-        "udp_port": 1902
+        "udp_port": 1902,
+        "password": ""
       },
       "mqtt": {
         "host": "",
@@ -31,7 +32,8 @@
     "schema": {
       "mediola": {
         "host": "str",
-        "udp_port": "int(0,65535)"
+        "udp_port": "int(0,65535)",
+        "password": "str"
       },
       "mqtt": {
         "host": "str",

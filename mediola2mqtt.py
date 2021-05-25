@@ -57,8 +57,6 @@ def on_message(client, obj, msg):
     dtype, adr = msg.topic.split("_")
     dtype = dtype[dtype.rfind("/")+1:]
     adr = adr[:adr.find("/")]
-    print(dtype)
-    print(adr)
     for ii in range(0, len(config['blinds'])):
         if dtype == config['blinds'][ii]['type'] and adr == config['blinds'][ii]['adr']:
             if msg.payload == b'open':
@@ -90,9 +88,10 @@ def on_message(client, obj, msg):
               "type" : dtype,
               "data" : data
             }
+            if 'password' in config['mediola'] and config['mediola']['password'] != '':
+              payload['XC_PASS'] = config['mediola']['password']
             url = 'http://' + config['mediola']['host'] + '/command'
             response = requests.get(url, params=payload, headers={'Connection':'close'})
-            print(response)
 
 def on_publish(client, obj, mid):
     print("Pub: " + str(mid))
