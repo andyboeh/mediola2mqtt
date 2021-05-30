@@ -1,6 +1,7 @@
 [Unit]
 Description=mediola2mqtt
-After=network.target
+Wants=mosquitto.service
+After=network.target mosquitto.service
 StartLimitIntervalSec=0
 
 [Service]
