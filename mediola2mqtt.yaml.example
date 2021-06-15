@@ -1,7 +1,13 @@
 mediola:
-  host: 192.168.18.127
-  udp_port: 1902
-  password:
+  - host: 192.168.18.127
+    password:
+    id: mediola1
+  - host: 192.168.18.128
+    password:
+    id: mediola2
+
+general:
+  port: 1902
 
 mqtt:
   host: homeassistant.lan
@@ -15,37 +21,49 @@ mqtt:
 buttons:
   - type: IT
     adr: 3d5e00
+    mediola: mediola1
   - type: IT
     adr: 4de600
+    mediola: mediola1
 
 blinds:
   - type: RT
     adr: 5a25d5
     name: Bad 1
+    mediola: mediola1
   - type: RT
     adr: 129a3a
     name: Bad 2
+    mediola: mediola1
   - type: RT
     adr: c36a8a
     name: Diele
+    mediola: mediola2
   - type: RT
     adr: f6eba5
     name: Stiegenhaus
+    mediola: mediola2
   - type: ER
     adr: "01"
     name: Essbereich Nord
+    mediola: mediola2
   - type: ER
     adr: "02"
     name: Essbereich Süd
+    mediola: mediola2
   - type: ER
     adr: "03"
     name: Kinderzimmer
+    mediola: mediola2
   - type: ER
     adr: "04"
     name: Schlafzimmer Rechts
+    mediola: mediola2
   - type: ER
     adr: "05"
     name: Schlafzimmer Mitte
+    mediola: mediola2
   - type: ER
     adr: "06"
     name: Schlafzimmer Links
+    mediola: mediola2

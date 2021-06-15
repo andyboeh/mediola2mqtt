@@ -88,9 +88,22 @@ def on_message(client, obj, msg):
               "type" : dtype,
               "data" : data
             }
-            if 'password' in config['mediola'] and config['mediola']['password'] != '':
-              payload['XC_PASS'] = config['mediola']['password']
-            url = 'http://' + config['mediola']['host'] + '/command'
+            host = ''
+            if isinstance(config['mediola'], list):
+              mediolaid = config['blinds']['ii']['mediola']
+              for jj in range(0, len(config['mediola'])):
+                if mediolaid == config['mediola'][jj]['id']:
+                  host = config['mediola'][jj]['host']
+                  if 'password' in config['mediola'][jj] and config['mediola'][jj]['password'] != '':
+                    payload['XC_PASS'] = config['mediola'][jj]['password']
+            else:
+              host = config['mediola']['host']
+              if 'password' in config['mediola'] and config['mediola']['password'] != '':
+                payload['XC_PASS'] = config['mediola']['password']
+            if host == '':
+              print('Error: Could not find matching Mediola!')
+              return
+            url = 'http://' + host + '/command'
             response = requests.get(url, params=payload, headers={'Connection':'close'})
 
 def on_publish(client, obj, mid):
@@ -107,7 +120,18 @@ def setup_discovery():
         # Buttons are configured as MQTT device triggers
         for ii in range(0, len(config['buttons'])):
             identifier = config['buttons'][ii]['type'] + '_' + config['buttons'][ii]['adr']
-            deviceid = "mediola_buttons_" + config['mediola']['host'].replace(".", "")
+            host = ''
+            if isinstance(config['mediola'], list):
+              mediolaid = config['buttons'][ii]['mediola']
+              for jj in range(0, len(config['mediola'])):
+                if mediolaid == config['mediola'][jj]['id']:
+                  host = config['mediola'][jj]['host']
+            else:
+              host = config['mediola']['host']
+            if host == '':
+              print('Error: Could not find matching Mediola!')
+              continue
+            deviceid = "mediola_buttons_" + host.replace(".", "")
             dtopic = config['mqtt']['discovery_prefix'] + '/device_automation/' + \
                      identifier + '/config'
             topic = config['mqtt']['topic'] + '/buttons/' + identifier
@@ -132,7 +156,18 @@ def setup_discovery():
     if 'blinds' in config:
         for ii in range(0, len(config['blinds'])):
             identifier = config['blinds'][ii]['type'] + '_' + config['blinds'][ii]['adr']
-            deviceid = "mediola_blinds_" + config['mediola']['host'].replace(".", "")
+            host = ''
+            if isinstance(config['mediola'], list):
+              mediolaid = config['buttons'][ii]['mediola']
+              for jj in range(0, len(config['mediola'])):
+                if mediolaid == config['mediola'][jj]['id']:
+                  host = config['mediola'][jj]['host']
+            else:
+              host = config['mediola']['host']
+            if host == '':
+              print('Error: Could not find matching Mediola!')
+              continue
+            deviceid = "mediola_blinds_" + host.replace(".", "")
             dtopic = config['mqtt']['discovery_prefix'] + '/cover/' + \
                      identifier + '/config'
             topic = config['mqtt']['topic'] + '/blinds/' + identifier
@@ -183,8 +218,13 @@ except:
     sys.exit(1)
 mqttc.loop_start()
 
+listen_port = 1902
+if 'general' in config:
+    if 'port' in config['general']:
+        listen_port = config['general']['port']
+
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.bind(('',config['mediola']['udp_port']))
+sock.bind(('',listen_port))
 
 # Set up discovery structure
 
