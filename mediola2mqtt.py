@@ -60,36 +60,36 @@ def on_message(client, obj, msg):
     for ii in range(0, len(config['blinds'])):
         if dtype == config['blinds'][ii]['type'] and adr == config['blinds'][ii]['adr']:
             if msg.payload == b'open':
-              if dtype == 'RT':
-                data = "20" + adr
-              elif dtype == 'ER':
-                data = format(int(adr), "02x") + "01"
-              else:
-                return
+                if dtype == 'RT':
+                    data = "20" + adr
+                elif dtype == 'ER':
+                    data = format(int(adr), "02x") + "01"
+                else:
+                    return
             elif msg.payload == b'close':
-              if dtype == 'RT':
-                data = "40" + adr
-              elif dtype == 'ER':
-                data = format(int(adr), "02x") + "00"
-              else:
-                return
+                if dtype == 'RT':
+                    data = "40" + adr
+                elif dtype == 'ER':
+                    data = format(int(adr), "02x") + "00"
+                else:
+                    return
             elif msg.payload == b'stop':
-              if dtype == 'RT':
-                data = "10" + adr
-              elif dtype == 'ER':
-                data = format(int(adr), "02x") + "02"
-              else:
-                return
+                if dtype == 'RT':
+                    data = "10" + adr
+                elif dtype == 'ER':
+                    data = format(int(adr), "02x") + "02"
+                else:
+                    return
             else:
-              print("Wrong command")
-              return
+                print("Wrong command")
+                return
             payload = {
               "XC_FNC" : "SendSC",
               "type" : dtype,
               "data" : data
             }
             if 'password' in config['mediola'] and config['mediola']['password'] != '':
-              payload['XC_PASS'] = config['mediola']['password']
+                payload['XC_PASS'] = config['mediola']['password']
             url = 'http://' + config['mediola']['host'] + '/command'
             response = requests.get(url, params=payload, headers={'Connection':'close'})
 
@@ -189,35 +189,49 @@ sock.bind(('',config['mediola']['udp_port']))
 # Set up discovery structure
 
 while True:
+    valid = False
     data, addr = sock.recvfrom(1024)
     if config['mqtt']['debug']:
         print('Received message: %s' % data)
         mqttc.publish(config['mqtt']['topic'], payload=data, retain=False)
+
+    # For the v4 (and probably v5) gateways, the status packet starts
+    # with '{XC_EVT}', but for the v6 it starts with 'STA:'.
     if data.startswith(b'{XC_EVT}'):
         data = data.replace(b'{XC_EVT}', b'')
-        data_dict = json.loads(data)
-        for ii in range(0, len(config['buttons'])):
-            if data_dict['type'] == config['buttons'][ii]['type']:
-                if data_dict['data'][0:-2].lower() == config['buttons'][ii]['adr'].lower():
-                    identifier = config['buttons'][ii]['type'] + '_' + config['buttons'][ii]['adr']
-                    topic = config['mqtt']['topic'] + '/buttons/' + identifier
-                    payload = data_dict['data'][-2:]
-                    mqttc.publish(topic, payload=payload, retain=False)
-        for ii in range(0, len(config['blinds'])):
-            if data_dict['type'] == 'ER' and data_dict['type'] == config['blinds'][ii]['type']:
-                if format(int(data_dict['data'][0:2].lower(), 16), '02d') == config['blinds'][ii]['adr'].lower():
-                    identifier = config['blinds'][ii]['type'] + '_' + config['blinds'][ii]['adr']
-                    topic = config['mqtt']['topic'] + '/blinds/' + identifier + '/state'
-                    state = data_dict['data'][-2:].lower()
-                    payload = 'unknown'
-                    if state == '01' or state == '0e':
-                        payload = 'open'
-                    elif state == '02' or state == '0f':
-                        payload = 'closed'
-                    elif state == '08' or state == '0a':
-                        payload = 'opening'
-                    elif state == '09' or state == '0b':
-                        payload = 'closing'
-                    elif state == '0d' or state == '05':
-                        payload = 'stopped'
-                    mqttc.publish(topic, payload=payload, retain=True)
+        valid = True
+    elif data.startswith(b'STA:'):
+        data = data.replace(b'STA:', b'')
+        valid = True
+
+    if valid:
+        try:
+            data_dict = json.loads(data)
+            for ii in range(0, len(config['buttons'])):
+                if data_dict['type'] == config['buttons'][ii]['type']:
+                    if data_dict['data'][0:-2].lower() == config['buttons'][ii]['adr'].lower():
+                        identifier = config['buttons'][ii]['type'] + '_' + config['buttons'][ii]['adr']
+                        topic = config['mqtt']['topic'] + '/buttons/' + identifier
+                        payload = data_dict['data'][-2:]
+                        mqttc.publish(topic, payload=payload, retain=False)
+            for ii in range(0, len(config['blinds'])):
+                if data_dict['type'] == 'ER' and data_dict['type'] == config['blinds'][ii]['type']:
+                    if format(int(data_dict['data'][0:2].lower(), 16), '02d') == config['blinds'][ii]['adr'].lower():
+                        identifier = config['blinds'][ii]['type'] + '_' + config['blinds'][ii]['adr']
+                        topic = config['mqtt']['topic'] + '/blinds/' + identifier + '/state'
+                        state = data_dict['data'][-2:].lower()
+                        payload = 'unknown'
+                        if state == '01' or state == '0e':
+                            payload = 'open'
+                        elif state == '02' or state == '0f':
+                            payload = 'closed'
+                        elif state == '08' or state == '0a':
+                            payload = 'opening'
+                        elif state == '09' or state == '0b':
+                            payload = 'closing'
+                        elif state == '0d' or state == '05':
+                            payload = 'stopped'
+                        mqttc.publish(topic, payload=payload, retain=True)
+        except:
+            if config['mqtt']['debug']:
+                print('Error parsing status packet')
