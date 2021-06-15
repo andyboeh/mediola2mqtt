@@ -1,5 +1,5 @@
 pkgname=mediola2mqtt-git
-pkgver=r10.6e18bee
+pkgver=r18.7bfbad8
 pkgrel=1
 pkgdesc="Simple Mediola to MQTT bridge"
 arch=('any')
@@ -16,7 +16,7 @@ conflicts=('mediola2mqtt')
 sha256sums=('SKIP'
             '7c7970ac8da7a38a9799b8bd9a447ae9b7703b58e11b5cb1fa0fd47a85ef1197'
             'dd8e862cf307b24c3333a62ffd81962082fa50e689c33882bff74ac79f04c5d1'
-            '4dcd7ac3019cfac4c511f46f91efb04be49f786beb523b2ec937f4664657bc54')
+            '0696031b973faf70d793ef28c1f9ef367a2fbfe95375a9b928cf83167a1b0847')
 backup=('opt/mediola2mqtt/mediola2mqtt.yaml')
 
 pkgver() {
