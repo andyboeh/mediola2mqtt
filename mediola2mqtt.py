@@ -161,6 +161,85 @@ def setup_discovery():
             mqttc.subscribe(topic + "/set")
             mqttc.publish(dtopic, payload=payload, retain=True)
 
+def handle_button(packet_type, address, state):
+    retain = False
+    topic = False
+    payload = False
+
+    for ii in range(0, len(config['buttons'])):
+        if packet_type == config['buttons'][ii]['type']:
+            if address == config['buttons'][ii]['adr'].lower():
+                identifier = config['buttons'][ii]['type'] + '_' + config['buttons'][ii]['adr']
+                topic = config['mqtt']['topic'] + '/buttons/' + identifier
+                payload = state
+    return topic, payload, retain
+
+
+def handle_blind(packet_type, address, state):
+    retain = True
+    topic = False
+    payload = False
+
+    for ii in range(0, len(config['blinds'])):
+        if packet_type == 'ER' and packet_type == config['blinds'][ii]['type']:
+            if address == config['blinds'][ii]['adr'].lower():
+                identifier = config['blinds'][ii]['type'] + '_' + config['blinds'][ii]['adr']
+                topic = config['mqtt']['topic'] + '/blinds/' + identifier + '/state'
+                payload = 'unknown'
+                if state == '01' or state == '0e':
+                    payload = 'open'
+                elif state == '02' or state == '0f':
+                    payload = 'closed'
+                elif state == '08' or state == '0a':
+                    payload = 'opening'
+                elif state == '09' or state == '0b':
+                    payload = 'closing'
+                elif state == '0d' or state == '05':
+                    payload = 'stopped'
+    return topic, payload, retain
+
+def handle_packet_v4(data):
+    try:
+        data_dict = json.loads(data)
+    except:
+        return False
+
+    packet_type = data_dict['type']
+    topic, payload, retain = handle_button(packet_type,
+                             data_dict['data'][0:-2].lower(),
+                             data_dict['data'][-2:].lower())
+    if not topic:
+        topic, payload, retain = handle_blind(packet_type,
+                         format(int(data_dict['data'][0:2].lower(), 16), '02d'),
+                         data_dict['data'][-2:].lower())
+
+    if topic and payload:
+        mqttc.publish(topic, payload=payload, retain=retain)
+        return True
+    else:
+        return False
+
+def handle_packet_v6(data):
+    try:
+        data_dict = json.loads(data)
+    except:
+        return False
+
+    packet_type = data_dict['type']
+    address = data_dict['adr'].lower()
+    state = data_dict['state'].lower()
+    topic, payload, retain = handle_button(packet_type, address, state)
+    if not topic:
+        topic, payload, retain = handle_blind(packet_type,
+                         format(int(address, 16), '02d'),
+                         state)
+
+    if topic and payload:
+        mqttc.publish(topic, payload=payload, retain=retain)
+        return True
+    else:
+        return False
+
 # Setup MQTT connection
 mqttc = mqtt.Client()
 
@@ -199,39 +278,11 @@ while True:
     # with '{XC_EVT}', but for the v6 it starts with 'STA:'.
     if data.startswith(b'{XC_EVT}'):
         data = data.replace(b'{XC_EVT}', b'')
-        valid = True
+        if not handle_packet_v4(data):
+            if config['mqtt']['debug']:
+                print('Error handling v4 packet: %s' % data)
     elif data.startswith(b'STA:'):
         data = data.replace(b'STA:', b'')
-        valid = True
-
-    if valid:
-        try:
-            data_dict = json.loads(data)
-            for ii in range(0, len(config['buttons'])):
-                if data_dict['type'] == config['buttons'][ii]['type']:
-                    if data_dict['data'][0:-2].lower() == config['buttons'][ii]['adr'].lower():
-                        identifier = config['buttons'][ii]['type'] + '_' + config['buttons'][ii]['adr']
-                        topic = config['mqtt']['topic'] + '/buttons/' + identifier
-                        payload = data_dict['data'][-2:]
-                        mqttc.publish(topic, payload=payload, retain=False)
-            for ii in range(0, len(config['blinds'])):
-                if data_dict['type'] == 'ER' and data_dict['type'] == config['blinds'][ii]['type']:
-                    if format(int(data_dict['data'][0:2].lower(), 16), '02d') == config['blinds'][ii]['adr'].lower():
-                        identifier = config['blinds'][ii]['type'] + '_' + config['blinds'][ii]['adr']
-                        topic = config['mqtt']['topic'] + '/blinds/' + identifier + '/state'
-                        state = data_dict['data'][-2:].lower()
-                        payload = 'unknown'
-                        if state == '01' or state == '0e':
-                            payload = 'open'
-                        elif state == '02' or state == '0f':
-                            payload = 'closed'
-                        elif state == '08' or state == '0a':
-                            payload = 'opening'
-                        elif state == '09' or state == '0b':
-                            payload = 'closing'
-                        elif state == '0d' or state == '05':
-                            payload = 'stopped'
-                        mqttc.publish(topic, payload=payload, retain=True)
-        except:
+        if not handle_packet_v6(data):
             if config['mqtt']['debug']:
-                print('Error parsing status packet')
+                print('Error handling v6 packet: %s' % data)
