@@ -55,10 +55,14 @@ def on_message(client, obj, msg):
     print("Msg: " + msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
     # Here we should send a HTTP request to Mediola to open the blind
     dtype, adr = msg.topic.split("_")
+    mediolaid = dtype.split("/")[-2]
     dtype = dtype[dtype.rfind("/")+1:]
     adr = adr[:adr.find("/")]
     for ii in range(0, len(config['blinds'])):
         if dtype == config['blinds'][ii]['type'] and adr == config['blinds'][ii]['adr']:
+            if isinstance(config['mediola'], list):
+                if config['blinds'][ii]['mediola'] != mediolaid:
+                    continue
             if msg.payload == b'open':
                 if dtype == 'RT':
                     data = "20" + adr
@@ -88,9 +92,22 @@ def on_message(client, obj, msg):
               "type" : dtype,
               "data" : data
             }
-            if 'password' in config['mediola'] and config['mediola']['password'] != '':
-                payload['XC_PASS'] = config['mediola']['password']
-            url = 'http://' + config['mediola']['host'] + '/command'
+            host = ''
+            if isinstance(config['mediola'], list):
+                mediolaid = config['blinds'][ii]['mediola']
+                for jj in range(0, len(config['mediola'])):
+                    if mediolaid == config['mediola'][jj]['id']:
+                        host = config['mediola'][jj]['host']
+                    if 'password' in config['mediola'][jj] and config['mediola'][jj]['password'] != '':
+                        payload['XC_PASS'] = config['mediola'][jj]['password']
+            else:
+                host = config['mediola']['host']
+                if 'password' in config['mediola'] and config['mediola']['password'] != '':
+                   payload['XC_PASS'] = config['mediola']['password']
+            if host == '':
+                print('Error: Could not find matching Mediola!')
+                return
+            url = 'http://' + host + '/command'
             response = requests.get(url, params=payload, headers={'Connection':'close'})
 
 def on_publish(client, obj, mid):
@@ -107,10 +124,22 @@ def setup_discovery():
         # Buttons are configured as MQTT device triggers
         for ii in range(0, len(config['buttons'])):
             identifier = config['buttons'][ii]['type'] + '_' + config['buttons'][ii]['adr']
-            deviceid = "mediola_buttons_" + config['mediola']['host'].replace(".", "")
+            host = ''
+            mediolaid = 'mediola'
+            if isinstance(config['mediola'], list):
+                mediolaid = config['buttons'][ii]['mediola']
+                for jj in range(0, len(config['mediola'])):
+                    if mediolaid == config['mediola'][jj]['id']:
+                        host = config['mediola'][jj]['host']
+            else:
+                host = config['mediola']['host']
+            if host == '':
+                print('Error: Could not find matching Mediola!')
+                continue
+            deviceid = "mediola_buttons_" + host.replace(".", "")
             dtopic = config['mqtt']['discovery_prefix'] + '/device_automation/' + \
-                     identifier + '/config'
-            topic = config['mqtt']['topic'] + '/buttons/' + identifier
+                     mediolaid + '_' + identifier + '/config'
+            topic = config['mqtt']['topic'] + '/buttons/' + mediolaid + '/' + identifier
             name = "Mediola Button"
             if 'name' in config['buttons'][ii]['type']:
                 name = config['buttons'][ii]['name']
@@ -132,10 +161,22 @@ def setup_discovery():
     if 'blinds' in config:
         for ii in range(0, len(config['blinds'])):
             identifier = config['blinds'][ii]['type'] + '_' + config['blinds'][ii]['adr']
-            deviceid = "mediola_blinds_" + config['mediola']['host'].replace(".", "")
+            host = ''
+            mediolaid = 'mediola'
+            if isinstance(config['mediola'], list):
+                mediolaid = config['blinds'][ii]['mediola']
+                for jj in range(0, len(config['mediola'])):
+                    if mediolaid == config['mediola'][jj]['id']:
+                        host = config['mediola'][jj]['host']
+            else:
+                host = config['mediola']['host']
+            if host == '':
+                print('Error: Could not find matching Mediola!')
+                continue
+            deviceid = "mediola_blinds_" + host.replace(".", "")
             dtopic = config['mqtt']['discovery_prefix'] + '/cover/' + \
-                     identifier + '/config'
-            topic = config['mqtt']['topic'] + '/blinds/' + identifier
+                     mediolaid + '_' + identifier + '/config'
+            topic = config['mqtt']['topic'] + '/blinds/' + mediolaid + '/' + identifier
             name = "Mediola Blind"
             if 'name' in config['blinds'][ii]:
                 name = config['blinds'][ii]['name']
@@ -147,7 +188,7 @@ def setup_discovery():
               "payload_stop" : "stop",
               "optimistic" : True,
               "device_class" : "blind",
-              "unique_id" : identifier,
+              "unique_id" : mediolaid + '_' + identifier,
               "name" : name,
               "device" : {
                 "identifiers" : deviceid,
@@ -161,7 +202,7 @@ def setup_discovery():
             mqttc.subscribe(topic + "/set")
             mqttc.publish(dtopic, payload=payload, retain=True)
 
-def handle_button(packet_type, address, state):
+def handle_button(packet_type, address, state, mediolaid):
     retain = False
     topic = False
     payload = False
@@ -169,13 +210,16 @@ def handle_button(packet_type, address, state):
     for ii in range(0, len(config['buttons'])):
         if packet_type == config['buttons'][ii]['type']:
             if address == config['buttons'][ii]['adr'].lower():
+                if isinstance(config['mediola'], list):
+                    if config['buttons'][ii]['mediola'] != mediolaid:
+                        continue
                 identifier = config['buttons'][ii]['type'] + '_' + config['buttons'][ii]['adr']
-                topic = config['mqtt']['topic'] + '/buttons/' + identifier
+                topic = config['mqtt']['topic'] + '/buttons/' + mediolaid + '/' + identifier
                 payload = state
     return topic, payload, retain
 
 
-def handle_blind(packet_type, address, state):
+def handle_blind(packet_type, address, state, mediolaid):
     retain = True
     topic = False
     payload = False
@@ -183,8 +227,11 @@ def handle_blind(packet_type, address, state):
     for ii in range(0, len(config['blinds'])):
         if packet_type == 'ER' and packet_type == config['blinds'][ii]['type']:
             if address == config['blinds'][ii]['adr'].lower():
+                if isinstance(config['mediola'], list):
+                    if config['blinds'][ii]['mediola'] != mediolaid:
+                        continue
                 identifier = config['blinds'][ii]['type'] + '_' + config['blinds'][ii]['adr']
-                topic = config['mqtt']['topic'] + '/blinds/' + identifier + '/state'
+                topic = config['mqtt']['topic'] + '/blinds/' + mediolaid + '/' + identifier + '/state'
                 payload = 'unknown'
                 if state == '01' or state == '0e':
                     payload = 'open'
@@ -198,20 +245,36 @@ def handle_blind(packet_type, address, state):
                     payload = 'stopped'
     return topic, payload, retain
 
-def handle_packet_v4(data):
+def get_mediolaid_by_address(addr):
+    mediolaid = 'mediola'
+    if not isinstance(config['mediola'], list):
+        return mediolaid
+
+    for ii in range(0, len(config['mediola'])):
+        host = config['mediola'][ii]['host']
+        ipaddr = socket.gethostbyname(host)
+        if addr[0] == ipaddr:
+            mediolaid = config['mediola'][ii]['id']
+
+    return mediolaid
+
+def handle_packet_v4(data, addr):
     try:
         data_dict = json.loads(data)
     except:
         return False
 
+    mediolaid = get_mediolaid_by_address(addr)
     packet_type = data_dict['type']
     topic, payload, retain = handle_button(packet_type,
                              data_dict['data'][0:-2].lower(),
-                             data_dict['data'][-2:].lower())
+                             data_dict['data'][-2:].lower(),
+                             mediolaid)
     if not topic:
         topic, payload, retain = handle_blind(packet_type,
                          format(int(data_dict['data'][0:2].lower(), 16), '02d'),
-                         data_dict['data'][-2:].lower())
+                         data_dict['data'][-2:].lower(),
+                         mediolaid)
 
     if topic and payload:
         mqttc.publish(topic, payload=payload, retain=retain)
@@ -219,20 +282,22 @@ def handle_packet_v4(data):
     else:
         return False
 
-def handle_packet_v6(data):
+def handle_packet_v6(data, addr):
     try:
         data_dict = json.loads(data)
     except:
         return False
 
+    mediolaid = get_mediolaid_by_address(addr)
     packet_type = data_dict['type']
     address = data_dict['adr'].lower()
     state = data_dict['state'][-2:].lower()
-    topic, payload, retain = handle_button(packet_type, address, state)
+    topic, payload, retain = handle_button(packet_type, address, state, mediolaid)
     if not topic:
         topic, payload, retain = handle_blind(packet_type,
                          format(int(address, 16), '02d'),
-                         state)
+                         state,
+                         mediolaid)
 
     if topic and payload:
         mqttc.publish(topic, payload=payload, retain=retain)
@@ -243,7 +308,7 @@ def handle_packet_v6(data):
 # Setup MQTT connection
 mqttc = mqtt.Client()
 
-mqttc.on_connect = on_connect
+#mqttc.on_connect = on_connect
 mqttc.on_subscribe = on_subscribe
 mqttc.on_disconnect = on_disconnect
 mqttc.on_message = on_message
@@ -262,10 +327,15 @@ except:
     sys.exit(1)
 mqttc.loop_start()
 
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.bind(('',config['mediola']['udp_port']))
+listen_port = 1902
+if 'general' in config:
+    if 'port' in config['general']:
+        listen_port = config['general']['port']
 
-# Set up discovery structure
+sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock.bind(('',listen_port))
+
+setup_discovery()
 
 while True:
     valid = False
@@ -278,11 +348,11 @@ while True:
     # with '{XC_EVT}', but for the v6 it starts with 'STA:'.
     if data.startswith(b'{XC_EVT}'):
         data = data.replace(b'{XC_EVT}', b'')
-        if not handle_packet_v4(data):
+        if not handle_packet_v4(data, addr):
             if config['mqtt']['debug']:
                 print('Error handling v4 packet: %s' % data)
     elif data.startswith(b'STA:'):
         data = data.replace(b'STA:', b'')
-        if not handle_packet_v6(data):
+        if not handle_packet_v6(data, addr):
             if config['mqtt']['debug']:
                 print('Error handling v6 packet: %s' % data)

@@ -6,6 +6,10 @@ Mediola AIO gateway to HomeAssistant or other MQTT capable hosts.
 ## Supported gateways
 
   * Mediola AIO gateway v4/v4+
+  
+Reported to work:
+
+  * Mediola AIO gateway v6
 
 ## Supported devices
 
@@ -42,8 +46,8 @@ browser. Check for `type` and `adr` fields.
 
 ## How it works
 
-The Mediola AIO Gateway v4 supports a simple HTTP API for control and broadcasts
-status changes via UDP on port 1902. The script provides a UDP socket server
+The Mediola AIO Gateway supports a simple HTTP API for control and broadcasts
+status changes via UDP on port 1902 (1901 for v6). The script provides a UDP socket server
 that listens for the status changes, interprets them and publishes them via MQTT.
 This is useful for buttons/switches, but can also be used for the state
 of a blind (only implemented for Elero).
