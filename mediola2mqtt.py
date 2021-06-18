@@ -227,7 +227,7 @@ def handle_packet_v6(data):
 
     packet_type = data_dict['type']
     address = data_dict['adr'].lower()
-    state = data_dict['state'].lower()
+    state = data_dict['state'][-2:].lower()
     topic, payload, retain = handle_button(packet_type, address, state)
     if not topic:
         topic, payload, retain = handle_blind(packet_type,
