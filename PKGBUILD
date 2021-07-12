@@ -16,7 +16,7 @@ conflicts=('mediola2mqtt')
 sha256sums=('SKIP'
             '7c7970ac8da7a38a9799b8bd9a447ae9b7703b58e11b5cb1fa0fd47a85ef1197'
             'dd8e862cf307b24c3333a62ffd81962082fa50e689c33882bff74ac79f04c5d1'
-            '0696031b973faf70d793ef28c1f9ef367a2fbfe95375a9b928cf83167a1b0847')
+            '44ba0df6671771e28f0d58d8b188a4bf25449a88cbe2f27189da54c17043ac70')
 backup=('opt/mediola2mqtt/mediola2mqtt.yaml')
 
 pkgver() {

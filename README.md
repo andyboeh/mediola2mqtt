@@ -44,6 +44,16 @@ You can retrieve a list of all
 known devices by calling `http://mediola.lan/command?XC_FNC=GetStates` in a 
 browser. Check for `type` and `adr` fields.
 
+## Multiple Mediola Gateways
+
+The add-on supports connecting to and managing several Gateways. However,
+due to limitations in the docker architecture, this is only supported when running
+standalone and not in add-on mode.
+
+If you need to enable multiple devices, you need to add an ID to each Mediola
+configured and assign the same ID to the buttons and blinds for this Mediola
+interface. This is necessary for sending commands to the "correct" Mediola.
+
 ## How it works
 
 The Mediola AIO Gateway supports a simple HTTP API for control and broadcasts

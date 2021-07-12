@@ -16,4 +16,4 @@ RestartSec=10
 TimeoutStopSec=30
 
 [Install]
-WantedBy=mult-user.target
+WantedBy=multi-user.target
