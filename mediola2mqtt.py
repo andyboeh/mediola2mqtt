@@ -308,7 +308,7 @@ def handle_packet_v6(data, addr):
 # Setup MQTT connection
 mqttc = mqtt.Client()
 
-#mqttc.on_connect = on_connect
+mqttc.on_connect = on_connect
 mqttc.on_subscribe = on_subscribe
 mqttc.on_disconnect = on_disconnect
 mqttc.on_message = on_message
@@ -335,7 +335,7 @@ if 'general' in config:
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 sock.bind(('',listen_port))
 
-setup_discovery()
+#setup_discovery()
 
 while True:
     valid = False
