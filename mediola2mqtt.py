@@ -67,10 +67,24 @@ def on_message(client, obj, msg):
                 if dtype == 'RT':
                     data = "20" + adr
                 elif dtype == 'ER':
-                    data = format(int(adr), "02x") + "01"
+                    data = format(int(adr), "02x") + "08"
                 else:
                     return
             elif msg.payload == b'close':
+                if dtype == 'RT':
+                    data = "40" + adr
+                elif dtype == 'ER':
+                    data = format(int(adr), "02x") + "09"
+                else:
+                    return
+            elif msg.payload == b'up':
+                if dtype == 'RT':
+                    data = "20" + adr
+                elif dtype == 'ER':
+                    data = format(int(adr), "02x") + "01"
+                else:
+                    return
+            elif msg.payload == b'down':
                 if dtype == 'RT':
                     data = "40" + adr
                 elif dtype == 'ER':
@@ -110,6 +124,84 @@ def on_message(client, obj, msg):
             url = 'http://' + host + '/command'
             response = requests.get(url, params=payload, headers={'Connection':'close'})
 
+    for ii in range(0, len(config['switches'])):
+        #currently only Intertechno and IR (= "other")
+        if dtype != 'IT' and dtype != 'IR':
+            continue
+
+        # get address of configured switch
+        if 'adr' in config['switches'][ii]:
+            cadr = config['switches'][ii]['adr']
+        elif dtype == "IT":
+            #try to calculate switch address from on_value for auto-learn IT switches, if adr is missing
+            cadr = get_IT_address(config['switches'][ii]['on_value'])
+        elif dtype == "IR":
+            #try to calculate switch address from name for OR switches, if adr is missing
+            cadr = get_IR_address(config['switches'][ii]['name'])
+
+        if dtype == config['switches'][ii]['type'] and adr == cadr:
+            if isinstance(config['mediola'], list):
+                if config['switches'][ii]['mediola'] != mediolaid:
+                    continue
+
+            if msg.payload == b'ON':
+                if 'on_value' in config['switches'][ii]:
+                    data = config['switches'][ii]['on_value']
+                elif dtype == "IT" and len(adr) == 3:
+                    # old family_code + device_code, A01 - P16
+                    data = format((ord(adr[0].upper()) - 65),'X') + format(int(adr[1:]) - 1,'X') + 'E'
+                else:
+                    print("Missing on_value and unknown type/address: " + dtype + "/" + adr)
+                    return
+                #print("on_value: = " + data)
+            elif msg.payload == b'OFF':
+                if 'off_value' in config['switches'][ii]:
+                    data = config['switches'][ii]['off_value']
+                elif dtype == "IT" and len(adr) == 3:
+                    # old family_code + device_code
+                    data = format((ord(adr[0].upper()) - 65),'X') + format(int(adr[1:]) - 1,'X') + '6'
+                else:
+                    print("Missing off_value and unknown type/address: " + dtype + "/" + adr)
+                    return
+                #print("off_value: = " + data)
+            else:
+                print("Wrong command")
+                return
+
+            if dtype == 'IT':
+                payload = {
+                    "XC_FNC" : "SendSC",
+                    "type" : dtype,
+                    "data" : data
+                }
+            elif dtype == 'IR':
+                payload = {
+                    "XC_FNC" : "Send2",
+                    "type" : "CODE",
+                    "ir"   : "01",
+                    "code" : data
+                }
+            host = ''
+            if isinstance(config['mediola'], list):
+                mediolaid = config['switches'][ii]['mediola']
+                for jj in range(0, len(config['mediola'])):
+                    if mediolaid == config['mediola'][jj]['id']:
+                        host = config['mediola'][jj]['host']
+                    if 'password' in config['mediola'][jj] and config['mediola'][jj]['password'] != '':
+                        payload['XC_PASS'] = config['mediola'][jj]['password']
+            else:
+                host = config['mediola']['host']
+                if 'password' in config['mediola'] and config['mediola']['password'] != '':
+                    payload['XC_PASS'] = config['mediola']['password']
+            if host == '':
+                print('Error: Could not find matching Mediola!')
+                return
+            url = 'http://' + host + '/command'
+            response = requests.get(url, params=payload, headers={'Connection':'close'})
+
+            #we are done here, end message processing
+            return
+
 def on_publish(client, obj, mid):
     print("Pub: " + str(mid))
 
@@ -141,7 +233,7 @@ def setup_discovery():
                      mediolaid + '_' + identifier + '/config'
             topic = config['mqtt']['topic'] + '/buttons/' + mediolaid + '/' + identifier
             name = "Mediola Button"
-            if 'name' in config['buttons'][ii]['type']:
+            if 'name' in config['buttons'][ii]:
                 name = config['buttons'][ii]['name']
 
             payload = {
@@ -156,6 +248,59 @@ def setup_discovery():
               },
             }
             payload = json.dumps(payload)
+            mqttc.publish(dtopic, payload=payload, retain=True)
+
+    if 'switches' in config:
+        for ii in range(0, len(config['switches'])):
+            type = config['switches'][ii]['type']
+
+            if 'adr' in config['switches'][ii]:
+                adr = config['switches'][ii]['adr']
+            elif type == "IT":
+                adr = get_IT_address(config['switches'][ii]['on_value'])
+
+            elif type == "IR" and 'name' in config['switches'][ii]:
+                adr = get_IR_address(config['switches'][ii]['name'])
+
+            identifier = type + '_' + adr
+            host = ''
+            mediolaid = 'mediola'
+            if isinstance(config['mediola'], list):
+                mediolaid = config['buttons'][ii]['mediola']
+                for jj in range(0, len(config['mediola'])):
+                    if mediolaid == config['mediola'][jj]['id']:
+                        host = config['mediola'][jj]['host']
+            else:
+                host = config['mediola']['host']
+            if host == '':
+                print('Error: Could not find matching Mediola!')
+                continue
+            deviceid = "mediola_switches_" + host.replace(".", "")
+            dtopic = config['mqtt']['discovery_prefix'] + '/switch/' + \
+                     mediolaid + '_' + identifier + '/config'
+            topic = config['mqtt']['topic'] + '/switches/' + mediolaid + '/' + identifier
+            name = "Mediola Switch"
+            if 'name' in config['switches'][ii]:
+                name = config['switches'][ii]['name']
+
+            payload = {
+              "command_topic" : topic + "/set",
+              "payload_on" : "ON",
+              "payload_off" : "OFF",
+              "optimistic" : True,
+              "unique_id" : mediolaid + '_' + identifier,
+              "name" : name,
+              "device" : {
+                "identifiers" : deviceid,
+                "manufacturer" : "Mediola",
+                "name" : "Mediola Switch",
+              },
+            }
+            # for bidirectional switches, add state channel
+            #if config['switches'][ii]['type'] == 'ER':
+            #    payload["state_topic"] = topic + "/state"
+            payload = json.dumps(payload)
+            mqttc.subscribe(topic + "/set")
             mqttc.publish(dtopic, payload=payload, retain=True)
 
     if 'blinds' in config:
@@ -305,6 +450,30 @@ def handle_packet_v6(data, addr):
     else:
         return False
 
+#calculate switch address from on_value for IT switches
+def get_IT_address(on_value):
+    # ITT-1500 new self-learning code
+    if len(on_value) == 8:
+        #26bit address, (2 bit command), 4 bit channel
+        return format(int(on_value,16) & 0xFFFFFFC7,"08x")
+
+    # familiy-code, device-code
+    elif len(on_value) == 3:
+        #familiy-code A-P -> 0-F
+        #device-code 01-16 -> 0-F
+        family_code = chr(int(on_value[0],16) + 65)
+        device_code = format(int(on_value[1],16) + 1,"02")
+        return family_code + device_code
+    else:
+        #print('Error: cannot calculate IT switch address from on_value = ' + on_value)
+        return "0"
+
+#calculate switch "address" from name for IR switches
+def get_IR_address(name):
+    adr = name.lower()
+    adr = ''.join(e for e in adr if e.isalnum() and e.isascii())
+    return adr
+
 # Setup MQTT connection
 mqttc = mqtt.Client()
 
@@ -315,7 +484,7 @@ mqttc.on_message = on_message
 
 if config['mqtt']['debug']:
     print("Debugging messages enabled")
-    mqttc.on_log = on_log    
+    mqttc.on_log = on_log
     mqttc.on_publish = on_publish
 
 if config['mqtt']['username'] and config['mqtt']['password']:
