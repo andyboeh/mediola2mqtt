@@ -16,6 +16,8 @@ Reported to work:
 Currently, the following devices are supported/tested:
 
   * Intertechno push buttons
+  * Intertechno switches
+  * IR switches (also used for "other" 477MHz devices)
   * Somfy RTS Blinds
   * Elero Blinds
 
