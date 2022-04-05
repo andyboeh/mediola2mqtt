@@ -42,7 +42,9 @@ Elero blinds, can also be performed by running `mediolamanager.py`.
 
 You can retrieve a list of all
 known devices by calling `http://mediola.lan/command?XC_FNC=GetStates` in a 
-browser. Check for `type` and `adr` fields.
+browser. Check for `type` and `adr` fields. Please make sure to define all addresses,
+especially for Elero devices, in decimal notation, not Hex! 0F becomes 15 in the
+configuration file!
 
 ## Multiple Mediola Gateways
 
