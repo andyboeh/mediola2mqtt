@@ -18,8 +18,10 @@ mqtt:
 buttons:
   - type: IT
     adr: 3d5e00
+    mediola: mediola1
   - type: IT
     adr: 4de600
+    mediola: mediola1
 
 blinds:
   - type: RT
