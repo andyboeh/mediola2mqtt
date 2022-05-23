@@ -9,6 +9,7 @@ Mediola AIO gateway to HomeAssistant or other MQTT capable hosts.
   
 Reported to work:
 
+  * Mediola AIO gateway v5 (not getting ELERO states reported from BiDi devices)
   * Mediola AIO gateway v6
 
 ## Supported devices
