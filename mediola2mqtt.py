@@ -67,24 +67,10 @@ def on_message(client, obj, msg):
                 if dtype == 'RT':
                     data = "20" + adr
                 elif dtype == 'ER':
-                    data = format(int(adr), "02x") + "08"
-                else:
-                    return
-            elif msg.payload == b'close':
-                if dtype == 'RT':
-                    data = "40" + adr
-                elif dtype == 'ER':
-                    data = format(int(adr), "02x") + "09"
-                else:
-                    return
-            elif msg.payload == b'up':
-                if dtype == 'RT':
-                    data = "20" + adr
-                elif dtype == 'ER':
                     data = format(int(adr), "02x") + "01"
                 else:
                     return
-            elif msg.payload == b'down':
+            elif msg.payload == b'close':
                 if dtype == 'RT':
                     data = "40" + adr
                 elif dtype == 'ER':
@@ -98,8 +84,60 @@ def on_message(client, obj, msg):
                     data = format(int(adr), "02x") + "02"
                 else:
                     return
+            # extended commands
+            elif msg.payload == b'down':
+                if dtype == 'RT':
+                    data = "40" + adr
+                elif dtype == 'ER':
+                    data = format(int(adr), "02x") + "00"
+                else:
+                    return
+            elif msg.payload == b'up':
+                if dtype == 'RT':
+                    data = "20" + adr
+                elif dtype == 'ER':
+                    data = format(int(adr), "02x") + "01"
+                else:
+                    return
+            elif msg.payload == b'longup':
+                if dtype == 'RT':
+                    data = "20" + adr
+                elif dtype == 'ER':
+                    data = format(int(adr), "02x") + "08"
+                else:
+                    return
+            elif msg.payload == b'longdown':
+                if dtype == 'RT':
+                    data = "40" + adr
+                elif dtype == 'ER':
+                    data = format(int(adr), "02x") + "09"
+                else:
+                    return
+            elif msg.payload == b'doubleup':
+                if dtype == 'RT':
+                    data = "20" + adr
+                elif dtype == 'ER':
+                    data = format(int(adr), "02x") + "0A"
+                else:
+                    return
+            elif msg.payload == b'doubledown':
+                if dtype == 'RT':
+                    data = "40" + adr
+                elif dtype == 'ER':
+                    data = format(int(adr), "02x") + "0B"
+                else:
+                    return
+            elif spayload.isnumeric():
+                #tilt
+                if dtype == 'ER':
+                    if int(spayload) > 0:
+                        data = format(int(adr), "02x") + "0A"   #double tap up
+                    else:
+                        data = format(int(adr), "02x") + "0B"   #double tap down
+                else:
+                    return
             else:
-                print("Wrong command")
+                print("Wrong command: " + str(msg.payload))
                 return
             payload = {
               "XC_FNC" : "SendSC",
@@ -328,6 +366,14 @@ def setup_discovery():
 
             payload = {
               "command_topic" : topic + "/set",
+              "tilt_command_topic" : topic + "/set",
+              "tilt_min" : 0,
+              "tilt_max": 1,
+              "tilt_closed_value" : 0,
+              "tilt_opened_value" : 1,
+              "tilt_command_template" : """
+                {% set tilt = state_attr(entity_id, "current_tilt_position") %}
+                {{ tilt }}""",
               "payload_open" : "open",
               "payload_close" : "close",
               "payload_stop" : "stop",
