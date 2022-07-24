@@ -72,9 +72,9 @@
         {
         "tpl_name": "str",
         "device_class": "str?",
-        "payload_open": "match(on|off|open|close|up|down|stop|upstep|downstep|manumpode|automode|togglemode|longup|longdown|doubleup|doubledown|learn|onpulsemove|offpulsemove|asclose|asmove)?",
-        "payload_close": "match(on|off|open|close|up|down|stop|upstep|downstep|manumpode|automode|togglemode|longup|longdown|doubleup|doubledown|learn|onpulsemove|offpulsemove|asclose|asmove)?",
-        "payload_stop": "match(on|off|open|close|up|down|stop|upstep|downstep|manumpode|automode|togglemode|longup|longdown|doubleup|doubledown|learn|onpulsemove|offpulsemove|asclose|asmove)?",
+        "payload_open": "match(on|off|open|close|up|down|stop|upstep|downstep|manumode|automode|togglemode|longup|longdown|doubleup|doubledown|learn|onpulsemove|offpulsemove|asclose|asmove)?",
+        "payload_close": "match(on|off|open|close|up|down|stop|upstep|downstep|manumode|automode|togglemode|longup|longdown|doubleup|doubledown|learn|onpulsemove|offpulsemove|asclose|asmove)?",
+        "payload_stop": "match(on|off|open|close|up|down|stop|upstep|downstep|manumode|automode|togglemode|longup|longdown|doubleup|doubledown|learn|onpulsemove|offpulsemove|asclose|asmove)?",
         "tilt_min": "int(0,100)?",
         "tilt_max": "int(0,100)?",
         "tilt_closed_value": "int(0,100)?",

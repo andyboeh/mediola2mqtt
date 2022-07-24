@@ -20,6 +20,26 @@ buttons:
     adr: 3d5e00
   - type: IT
     adr: 4de600
+  - type: IR
+    name: Teichlicht2
+    on_value: >-
+      19080081000500190500CC00E201A500E001A501B800CC01B800CC06D300010101010200020001020001010101020300020303030304
+
+switches:
+  - type: IT
+    name: Sternenlampe
+    on_value: 3C5B1490
+    off_value: 3C5B1480
+  - type: IT
+    name: Fernsehlicht
+    on_value: 3C5B1491
+    off_value: 3C5B1481
+  - type: IR
+    name: Teichlicht1
+    on_value: >-
+      19080081000500190500CC00E001A400E101A401B900CC01B900CC06D500010101010200020001020001010101020303030002030304
+    off_value: >-
+      19080081000500190500CC00E101A400E001A401BA00CC01B800CC06D100010101010200020001020001010101020303030300020304
 
 blinds:
   - type: RT
@@ -42,23 +62,39 @@ blinds:
     adr: "01"
     name: Essbereich Nord
     mediola: mediola2
+    template: tpl_blind
   - type: ER
     adr: "02"
     name: Essbereich Süd
     mediola: mediola2
+    template: tpl_blind
   - type: ER
     adr: "03"
     name: Kinderzimmer
     mediola: mediola2
+    template: tpl_blind
   - type: ER
     adr: "04"
     name: Schlafzimmer Rechts
     mediola: mediola2
+    template: tpl_blind
   - type: ER
     adr: "05"
     name: Schlafzimmer Mitte
     mediola: mediola2
+    template: tpl_blind
   - type: ER
     adr: "06"
     name: Schlafzimmer Links
     mediola: mediola2
+    
+templates:
+  - tpl_name: tpl_blind
+    payload_open: up
+    payload_close: down
+    tilt_min: 0
+    tilt_max: 1
+    tilt_closed_value: 0
+    tilt_opened_value: 1
+    tilt_command_template: '{% set tilt = state_attr(entity_id, "current_tilt_position") %}{{ tilt }}'
+
