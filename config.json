@@ -1,8 +1,7 @@
 {
     "name": "Mediola to MQTT",
-    "version": "0.3.8ro",
+    "version": "0.3.15ro",
     "slug": "mediola2mqtt",
-    "init": false,
     "description": "Homeassistant interface to Mediola AIO Gateway v4/v4+",
     "arch": ["aarch64", "amd64", "armhf", "armv7", "i386"],
     "startup": "application",
@@ -28,7 +27,9 @@
         "debug": false
       },
       "blinds": [ ],
-      "buttons": [ ]
+      "switches": [ ],
+      "buttons": [ ],
+      "templates": [ ]
     },
     "schema": {
       "mediola": {
@@ -48,7 +49,8 @@
         {
         "type": "match(ER|RT)?",
         "adr": "str?",
-        "name": "str?"
+        "name": "str?",
+        "template": "str?"
         }
       ],
       "switches": [
@@ -65,6 +67,20 @@
         "type": "match(IT)?",
         "adr": "str?"
         }
+      ],
+      "templates": [
+        {
+        "tpl_name": "str",
+        "device_class": "str?",
+        "payload_open": "match(on|off|open|close|up|down|stop|upstep|downstep|manumpode|automode|togglemode|longup|longdown|doubleup|doubledown|learn|onpulsemove|offpulsemove|asclose|asmove)?",
+        "payload_close": "match(on|off|open|close|up|down|stop|upstep|downstep|manumpode|automode|togglemode|longup|longdown|doubleup|doubledown|learn|onpulsemove|offpulsemove|asclose|asmove)?",
+        "payload_stop": "match(on|off|open|close|up|down|stop|upstep|downstep|manumpode|automode|togglemode|longup|longdown|doubleup|doubledown|learn|onpulsemove|offpulsemove|asclose|asmove)?",
+        "tilt_min": "int(0,100)?",
+        "tilt_max": "int(0,100)?",
+        "tilt_closed_value": "int(0,100)?",
+        "tilt_opened_value": "int(0,100)?",
+        "tilt_command_template": "str?"
+      }
       ]
     }
 }

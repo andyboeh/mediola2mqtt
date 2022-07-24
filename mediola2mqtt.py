@@ -52,6 +52,7 @@ def on_disconnect(client, userdata, rc):
         print("Disconnected")
 
 def on_message(client, obj, msg):
+    spayload = msg.payload.decode()
     print("Msg: " + msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
     # Here we should send a HTTP request to Mediola to open the blind
     dtype, adr = msg.topic.split("_")
@@ -85,46 +86,88 @@ def on_message(client, obj, msg):
                 else:
                     return
             # extended commands
-            elif msg.payload == b'down':
+            elif msg.payload == b'down' or msg.payload == b'off':
                 if dtype == 'RT':
                     data = "40" + adr
                 elif dtype == 'ER':
                     data = format(int(adr), "02x") + "00"
                 else:
                     return
-            elif msg.payload == b'up':
+            elif msg.payload == b'up' or msg.payload == b'on':
                 if dtype == 'RT':
                     data = "20" + adr
                 elif dtype == 'ER':
                     data = format(int(adr), "02x") + "01"
                 else:
                     return
+            elif msg.payload == b'upstep':
+                if dtype == 'ER':
+                    data = format(int(adr), "02x") + "03"
+                else:
+                    return
+            elif msg.payload == b'downstep':
+                if dtype == 'ER':
+                    data = format(int(adr), "02x") + "04"
+                else:
+                    return
+            elif msg.payload == b'manumode':
+                if dtype == 'ER':
+                    data = format(int(adr), "02x") + "05"
+                else:
+                    return
+            elif msg.payload == b'automode':
+                if dtype == 'ER':
+                    data = format(int(adr), "02x") + "06"
+                else:
+                    return
+            elif msg.payload == b'togglemode':
+                if dtype == 'ER':
+                    data = format(int(adr), "02x") + "07"
+                else:
+                    return
             elif msg.payload == b'longup':
-                if dtype == 'RT':
-                    data = "20" + adr
-                elif dtype == 'ER':
+                if dtype == 'ER':
                     data = format(int(adr), "02x") + "08"
                 else:
                     return
             elif msg.payload == b'longdown':
-                if dtype == 'RT':
-                    data = "40" + adr
-                elif dtype == 'ER':
+                if dtype == 'ER':
                     data = format(int(adr), "02x") + "09"
                 else:
                     return
             elif msg.payload == b'doubleup':
-                if dtype == 'RT':
-                    data = "20" + adr
-                elif dtype == 'ER':
+                if dtype == 'ER':
                     data = format(int(adr), "02x") + "0A"
                 else:
                     return
             elif msg.payload == b'doubledown':
-                if dtype == 'RT':
-                    data = "40" + adr
-                elif dtype == 'ER':
+                if dtype == 'ER':
                     data = format(int(adr), "02x") + "0B"
+                else:
+                    return
+            elif msg.payload == b'learn':
+                if dtype == 'ER':
+                    data = format(int(adr), "02x") + "0C"
+                else:
+                    return
+            elif msg.payload == b'onpulsemove':
+                if dtype == 'ER':
+                    data = format(int(adr), "02x") + "0D"
+                else:
+                    return
+            elif msg.payload == b'offpulsemove':
+                if dtype == 'ER':
+                    data = format(int(adr), "02x") + "0E"
+                else:
+                    return
+            elif msg.payload == b'asclose':
+                if dtype == 'ER':
+                    data = format(int(adr), "02x") + "0F"
+                else:
+                    return
+            elif msg.payload == b'asmove':
+                if dtype == 'ER':
+                    data = format(int(adr), "02x") + "10"
                 else:
                     return
             elif spayload.isnumeric():
@@ -161,6 +204,8 @@ def on_message(client, obj, msg):
                 return
             url = 'http://' + host + '/command'
             response = requests.get(url, params=payload, headers={'Connection':'close'})
+            if config['mqtt']['debug']:
+                print(f"Send Mediola: {payload} --> {response.text}")
 
     for ii in range(0, len(config['switches'])):
         #currently only Intertechno and IR (= "other")
@@ -236,6 +281,8 @@ def on_message(client, obj, msg):
                 return
             url = 'http://' + host + '/command'
             response = requests.get(url, params=payload, headers={'Connection':'close'})
+            if config['mqtt']['debug']:
+                print(f"Send Mediola: {payload} --> {response.text}")
 
             #we are done here, end message processing
             return
@@ -366,14 +413,6 @@ def setup_discovery():
 
             payload = {
               "command_topic" : topic + "/set",
-              "tilt_command_topic" : topic + "/set",
-              "tilt_min" : 0,
-              "tilt_max": 1,
-              "tilt_closed_value" : 0,
-              "tilt_opened_value" : 1,
-              "tilt_command_template" : """
-                {% set tilt = state_attr(entity_id, "current_tilt_position") %}
-                {{ tilt }}""",
               "payload_open" : "open",
               "payload_close" : "close",
               "payload_stop" : "stop",
@@ -387,6 +426,28 @@ def setup_discovery():
                 "name" : "Mediola Blind",
               },
             }
+            # apply template if defined and override values
+            if 'template' in config['blinds'][ii]:
+                template = config['blinds'][ii]['template']
+                if 'templates' in config:
+                    try:
+                        for tpl in config['templates']:
+                            if tpl['tpl_name'] != template:
+                                continue
+                            tpl_pl = dict(tpl)
+                            del tpl_pl["tpl_name"]  # not part of the payload
+                            for tpl_index, (tpl_key, tpl_value) in enumerate(tpl_pl.items()):
+                                payload[tpl_key] = tpl_value # s.format(**vars())
+                            # supply tilt_command_topic if needed but missing
+                            if 'tilt_command_topic' not in payload and ('tilt_opened_value' in payload or 'tilt_closed_value' in payload):
+                                payload['tilt_command_topic'] = payload['command_topic'] 
+                            break
+                        print(f"Missing template: {template}")
+                    except BaseException as err:
+                        print(f"Unexpected {err=}, {type(err)=}")
+                        raise
+                else:
+                    print(f"Missing section 'templates' to resolve template: {template}")
             if config['blinds'][ii]['type'] == 'ER':
                 payload["state_topic"] = topic + "/state"
             payload = json.dumps(payload)
@@ -557,7 +618,7 @@ while True:
     data, addr = sock.recvfrom(1024)
     if config['mqtt']['debug']:
         print('Received message: %s' % data)
-        mqttc.publish(config['mqtt']['topic'], payload=data, retain=False)
+    mqttc.publish(config['mqtt']['topic'], payload=data, retain=False)
 
     # For the v4 (and probably v5) gateways, the status packet starts
     # with '{XC_EVT}', but for the v6 it starts with 'STA:'.
