@@ -76,20 +76,20 @@ writing the same values over and over which keeps the config short.
 
 See mediola2mqtt.yaml.example
 
-## ELERO commands
-currently the following commenda from the API are available wherever you want to override
+## extended ELERO commands
+currently the following commends from the API are available wherever you want to override
 the default "up" and "down" values:
 
 ### default commands
 
-  * open
-  * close
+  * open, up, on
+  * close, down, off
   * stop
 
 ### extended commands (use templating)
 
-  * up, on
-  * down, off
+These commands are currently available for ELERO only, not Somfy RTS
+
   * upstep
   * downstep
   * manumode

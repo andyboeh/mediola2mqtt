@@ -87,6 +87,7 @@ blinds:
     adr: "06"
     name: Schlafzimmer Links
     mediola: mediola2
+    template: tpl_blind
     
 templates:
   - tpl_name: tpl_blind
