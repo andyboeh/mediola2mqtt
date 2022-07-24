@@ -5,6 +5,7 @@ Mediola AIO gateway to HomeAssistant or other MQTT capable hosts.
 
 ## Supported gateways
 
+  * Mediola AIO gateway v5 (not getting ELERO states reported from BiDi devices)
   * Mediola AIO gateway v4/v4+
   
 Reported to work:
@@ -16,6 +17,8 @@ Reported to work:
 Currently, the following devices are supported/tested:
 
   * Intertechno push buttons
+  * Intertechno switches
+  * IR switches (also used for "other" 433MHz devices)
   * Somfy RTS Blinds
   * Elero Blinds
 
@@ -64,3 +67,41 @@ of a blind (only implemented for Elero).
 
 Controlling a blind or other device is done via HTTP, by interpreting MQTT messages
 and triggering the HTTP API.
+
+## Templating
+
+This fork implements some kind of templating. You can define a set of properties and 
+later refer to this set in the definition of the devices. This saves you from repeatedly
+writing the same values over and over which keeps the config short.
+
+See mediola2mqtt.yaml.example
+
+## ELERO commands
+currently the following commenda from the API are available wherever you want to override
+the default "up" and "down" values:
+
+### default commands
+
+  * open
+  * close
+  * stop
+
+### extended commands (use templating)
+
+  * up, on
+  * down, off
+  * upstep
+  * downstep
+  * manumode
+  * automode
+  * togglemode
+  * longup
+  * longdown
+  * doubleup
+  * doubledown
+  * learn
+  * onpulsemove
+  * offpulsemove
+  * asclose
+  * asmove
+
