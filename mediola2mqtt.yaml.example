@@ -20,10 +20,6 @@ buttons:
     adr: 3d5e00
   - type: IT
     adr: 4de600
-  - type: IR
-    name: Teichlicht2
-    on_value: >-
-      19080081000500190500CC00E201A500E001A501B800CC01B800CC06D300010101010200020001020001010101020300020303030304
 
 switches:
   - type: IT
