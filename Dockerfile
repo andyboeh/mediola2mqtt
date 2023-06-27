@@ -8,6 +8,7 @@ RUN apk add py3-pip
 RUN pip3 install paho-mqtt
 RUN pip3 install requests
 RUN pip3 install PyYAML
+RUN pip3 install requests
 
 COPY mediola2mqtt.py /
 COPY run.sh /

@@ -1,12 +1,12 @@
 {
     "name": "Mediola to MQTT",
-    "version": "0.3",
+    "version": "0.3.15ro",
     "slug": "mediola2mqtt",
-    "init": false,
     "description": "Homeassistant interface to Mediola AIO Gateway v4/v4+",
     "arch": ["aarch64", "amd64", "armhf", "armv7", "i386"],
     "startup": "application",
-	"services": ["mqtt:need"],
+    "init": false,
+    "services": ["mqtt:need"],
     "boot": "auto",
     "ports" : {
       "1902/udp" : 1902
@@ -27,7 +27,9 @@
         "debug": false
       },
       "blinds": [ ],
-      "buttons": [ ]
+      "switches": [ ],
+      "buttons": [ ],
+      "templates": [ ]
     },
     "schema": {
       "mediola": {
@@ -47,7 +49,17 @@
         {
         "type": "match(ER|RT)?",
         "adr": "str?",
-        "name": "str?"
+        "name": "str?",
+        "template": "str?"
+        }
+      ],
+      "switches": [
+        {
+        "type": "match(IT|IR)?",
+        "adr": "str?",
+        "name": "str?",
+        "on_value": "str?",
+        "off_value": "str?"
         }
       ],
       "buttons": [
@@ -55,6 +67,20 @@
         "type": "match(IT)?",
         "adr": "str?"
         }
+      ],
+      "templates": [
+        {
+        "tpl_name": "str",
+        "device_class": "str?",
+        "payload_open": "match(on|off|open|close|up|down|stop|upstep|downstep|manumode|automode|togglemode|longup|longdown|doubleup|doubledown|learn|onpulsemove|offpulsemove|asclose|asmove)?",
+        "payload_close": "match(on|off|open|close|up|down|stop|upstep|downstep|manumode|automode|togglemode|longup|longdown|doubleup|doubledown|learn|onpulsemove|offpulsemove|asclose|asmove)?",
+        "payload_stop": "match(on|off|open|close|up|down|stop|upstep|downstep|manumode|automode|togglemode|longup|longdown|doubleup|doubledown|learn|onpulsemove|offpulsemove|asclose|asmove)?",
+        "tilt_min": "int(0,100)?",
+        "tilt_max": "int(0,100)?",
+        "tilt_closed_value": "int(0,100)?",
+        "tilt_opened_value": "int(0,100)?",
+        "tilt_command_template": "str?"
+      }
       ]
     }
 }
